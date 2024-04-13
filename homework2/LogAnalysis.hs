@@ -1,27 +1,27 @@
 {-# OPTIONS_GHC -Wall #-}
+
 module LogAnalysis where
 
+import Data.List (intercalate, takeWhile)
 import Log
 import Text.Read
-import Data.List (intercalate, takeWhile)
 
 -- exercise 1
 parseErrorLevel :: [String] -> Maybe Int
 parseErrorLevel [] = Nothing
-parseErrorLevel (x:_) = readMaybe x :: Maybe Int
+parseErrorLevel (x : _) = readMaybe x :: Maybe Int
 
 parseMessageType :: [String] -> Maybe MessageType
-parseMessageType ("I":_) = Just Info
-parseMessageType ("W":_) = Just Warning
-parseMessageType ("E":xs) = case parseErrorLevel xs of
+parseMessageType ("I" : _) = Just Info
+parseMessageType ("W" : _) = Just Warning
+parseMessageType ("E" : xs) = case parseErrorLevel xs of
     Just level -> Just $ Error level
     Nothing -> Nothing
 parseMessageType _ = Nothing
 
 parseTimeStamp :: [String] -> Maybe TimeStamp
 parseTimeStamp [] = Nothing
-parseTimeStamp (x:_) = readMaybe x
-
+parseTimeStamp (x : _) = readMaybe x
 
 workListToString :: [String] -> String
 workListToString = intercalate " "
@@ -35,9 +35,10 @@ parseMessageFromList lst = case (parseMessageType lst) of
                 [] -> Unknown $ workListToString lst
                 _ -> LogMessage msgTy time $ workListToString $ tail restList
             Nothing -> Unknown $ workListToString lst
-        where restList = case msgTy of
-                Error _ -> tail $ tail lst
-                _ -> tail lst
+      where
+        restList = case msgTy of
+            Error _ -> tail $ tail lst
+            _ -> tail lst
 
 parseMessage :: String -> LogMessage
 parseMessage = parseMessageFromList . words
@@ -64,11 +65,13 @@ insert msg tr = case timeStamp msg of
     Just time -> case tr of
         Leaf -> Node Leaf msg Leaf
         (Node leftTr m righTr) ->
-            if Just time <= nodeTime then
-                Node (insert msg $ leftNode tr) m righTr
-            else
-                Node leftTr m (insert msg $ rightNode tr)
-            where nodeTime = timeStamp m
+            if Just time <= nodeTime
+                then
+                    Node (insert msg $ leftNode tr) m righTr
+                else
+                    Node leftTr m (insert msg $ rightNode tr)
+          where
+            nodeTime = timeStamp m
 
 -- exercise 3
 build :: [LogMessage] -> MessageTree
